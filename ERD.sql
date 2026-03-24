@@ -1,4 +1,3 @@
--- Active: 1773542919510@@127.0.0.1@3306@fertility_clinic
 -- ============================================================
 -- B556 Biological Database Management - Fertility Clinic DB
 -- Created from: ERD_final-final.pdf
