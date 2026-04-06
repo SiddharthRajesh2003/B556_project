@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{ patient }}{% endblock %}
+{% block content %}
+<h1>{{ patient.first_name }} {{ patient.last_name }}</h1>
+
+<div class="card">
+    <h2>Demographics</h2>
+    <dl>
+        <dt>Patient ID</dt>     <dd>{{ patient.pk }}</dd>
+        <dt>Date of Birth</dt>  <dd>{{ patient.dob|default:"—" }}</dd>
+        <dt>Patient Type</dt>   <dd>{{ patient.patient_type }}</dd>
+        <dt>Sex at Birth</dt>   <dd>{{ patient.sex_at_birth|default:"—" }}</dd>
+        <dt>Gender</dt>         <dd>{{ patient.patient_gender|default:"—" }}</dd>
+        <dt>Treatment Plan</dt> <dd>{{ patient.treatment_plan|default:"—" }}</dd>
+    </dl>
+</div>
+
+{% if patient.medical_history %}
+<div class="card">
+    <h2>Medical History</h2>
+    <dl>
+        <dt>Diabetes Status</dt>    <dd>{{ patient.medical_history.diabetes_status|default:"—" }}</dd>
+        <dt>Height</dt>             <dd>{{ patient.medical_history.height|default:"—" }}</dd>
+        <dt>Weight</dt>             <dd>{{ patient.medical_history.weight|default:"—" }}</dd>
+        <dt>Blood Type</dt>         <dd>{{ patient.medical_history.blood_type|default:"—" }}</dd>
+        <dt>Medical Conditions</dt> <dd>{{ patient.medical_history.medical_conditions|default:"—" }}</dd>
+        <dt>Surgical History</dt>   <dd>{{ patient.medical_history.surgical_history|default:"—" }}</dd>
+        <dt>Alcohol Use</dt>        <dd>{{ patient.medical_history.alcohol_use|default:"—" }}</dd>
+    </dl>
+</div>
+{% endif %}
+
+{% if patient.patient_type == 'Female' and patient.female_data %}
+<div class="card">
+    <h2>Reproductive Data</h2>
+    <dl>
+        <dt>Cycle Number</dt>               <dd>{{ patient.female_data.cycle_number|default:"—" }}</dd>
+        <dt>Length of Cycle (days)</dt>     <dd>{{ patient.female_data.length_of_cycle|default:"—" }}</dd>
+        <dt>Mean Cycle Length</dt>          <dd>{{ patient.female_data.mean_cycle_length|default:"—" }}</dd>
+        <dt>Est. Day of Ovulation</dt>      <dd>{{ patient.female_data.estimated_day_of_ovulation|default:"—" }}</dd>
+        <dt>Total Days of Fertility</dt>    <dd>{{ patient.female_data.total_days_of_fertility|default:"—" }}</dd>
+        <dt>Total Menses Score</dt>         <dd>{{ patient.female_data.total_menses_score|default:"—" }}</dd>
+        <dt>Unusual Bleeding</dt>           <dd>{{ patient.female_data.unusual_bleeding|yesno:"Yes,No,—" }}</dd>
+        <dt>Number of Pregnancies</dt>      <dd>{{ patient.female_data.numberpreg|default:"—" }}</dd>
+        <dt>Living Children</dt>            <dd>{{ patient.female_data.livingkids|default:"—" }}</dd>
+        <dt>Miscarriages</dt>               <dd>{{ patient.female_data.miscarriages|default:"—" }}</dd>
+        <dt>Abortions</dt>                  <dd>{{ patient.female_data.abortions|default:"—" }}</dd>
+        <dt>Breastfeeding</dt>              <dd>{{ patient.female_data.breastfeeding|yesno:"Yes,No,—" }}</dd>
+    </dl>
+</div>
+{% endif %}
+
+{% if patient.patient_type == 'Male' and patient.male_data %}
+<div class="card">
+    <h2>Clinical Data</h2>
+    <dl>
+        <dt>Trauma History</dt>   <dd>{{ patient.male_data.trauma_history|yesno:"Yes,No,—" }}</dd>
+        <dt>Fever History</dt>    <dd>{{ patient.male_data.fever_history|default:"—" }}</dd>
+        <dt>Activity Level</dt>   <dd>{{ patient.male_data.activity_levels|default:"—" }} hrs sitting/day</dd>
+        <dt>Diagnosis</dt>        <dd>{{ patient.male_data.diagnosis|default:"—" }}</dd>
+    </dl>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Appointments</h2>
+    <table>
+        <thead><tr><th>Date</th><th>Time</th><th>Provider</th><th>Room</th><th>Results</th></tr></thead>
+        <tbody>
+        {% for appt in patient.appointments.all %}
+            <tr>
+                <td>{{ appt.scheduled_date }}</td>
+                <td>{{ appt.scheduled_time|default:"—" }}</td>
+                <td>{{ appt.hcp }}</td>
+                <td>{{ appt.room_number|default:"—" }}</td>
+                <td>{{ appt.results.count }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" style="color:#999">No appointments.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Specimens</h2>
+    <table>
+        <thead><tr><th>Type</th><th>Barcode</th><th>Collection Date</th><th>Details</th></tr></thead>
+        <tbody>
+        {% for s in patient.sperm_specimens.all %}
+            <tr>
+                <td>Sperm</td>
+                <td>{{ s.barcode }}</td>
+                <td>{{ s.collection_date|default:"—" }}</td>
+                <td>Concentration: {{ s.sperm_concentration|default:"—" }} M/mL, Motility: {{ s.progressive_motility|default:"—" }}%</td>
+            </tr>
+        {% endfor %}
+        {% for o in patient.oocyte_specimens.all %}
+            <tr>
+                <td>Oocyte</td>
+                <td>{{ o.barcode }}</td>
+                <td>{{ o.collection_date|default:"—" }}</td>
+                <td>Maturity: {{ o.maturity|default:"—" }}, Count: {{ o.count|default:"—" }}</td>
+            </tr>
+        {% endfor %}
+        {% for e in patient.embryos.all %}
+            <tr>
+                <td>Embryo</td>
+                <td>{{ e.barcode }}</td>
+                <td>{{ e.collection_date|default:"—" }}</td>
+                <td>Motility: {{ e.motility|default:"—" }}%</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{% url 'patient-list' %}" class="btn btn-secondary">Back to Patients</a>
+{% endblock %}
