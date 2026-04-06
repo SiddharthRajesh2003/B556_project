@@ -5,7 +5,8 @@ from patients.models import PatientInformation
 class SampleInventory(models.Model):
     storage_id          = models.AutoField(primary_key=True, db_column='Storage_ID')
     storage_temperature = models.DecimalField(max_digits=6, decimal_places=2,
-                              null=True, blank=True, help_text='Temperature in Celsius')
+                              null=True, blank=True, db_column='Storage_Temperature',
+                              help_text='Temperature in Celsius')
 
     class Meta:
         db_table = 'SampleInventory'
@@ -23,27 +24,27 @@ class SpermSpecimen(models.Model):
     storage                 = models.ForeignKey(SampleInventory, on_delete=models.SET_NULL,
                                   null=True, blank=True, db_column='Storage_ID',
                                   related_name='sperm_specimens')
-    collection_date         = models.DateField(null=True, blank=True)
+    collection_date         = models.DateField(null=True, blank=True, db_column='Collection_Date')
     sperm_concentration     = models.DecimalField(max_digits=10, decimal_places=2,
-                                  null=True, blank=True, help_text='million/mL')
+                                  null=True, blank=True, db_column='Sperm_Concentration', help_text='million/mL')
     total_sperm_count       = models.DecimalField(max_digits=10, decimal_places=2,
-                                  null=True, blank=True, help_text='million')
+                                  null=True, blank=True, db_column='Total_Sperm_Count', help_text='million')
     ejaculate_volume        = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True, help_text='mL')
+                                  null=True, blank=True, db_column='Ejaculate_Volume', help_text='mL')
     sperm_vitality          = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True, help_text='%')
+                                  null=True, blank=True, db_column='Sperm_Vitality', help_text='%')
     normal_spermatozoa      = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True, help_text='%')
+                                  null=True, blank=True, db_column='Normal_Spermatozoa', help_text='%')
     cytoplasmic_droplet     = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True, help_text='%')
+                                  null=True, blank=True, db_column='Cytoplasmic_Droplet', help_text='%')
     teratozoospermia_index  = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True)
+                                  null=True, blank=True, db_column='Teratozoospermia_Index')
     progressive_motility    = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True, help_text='%')
+                                  null=True, blank=True, db_column='Progressive_Motility', help_text='%')
     high_dna_stainability   = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True, help_text='%')
+                                  null=True, blank=True, db_column='High_DNA_Stainability', help_text='%')
     dna_fragmentation_index = models.DecimalField(max_digits=5, decimal_places=2,
-                                  null=True, blank=True, help_text='%')
+                                  null=True, blank=True, db_column='DNA_Fragmentation_Index', help_text='%')
 
     class Meta:
         db_table = 'SpermSpecimen'
@@ -61,11 +62,11 @@ class OocyteSpecimen(models.Model):
     storage              = models.ForeignKey(SampleInventory, on_delete=models.SET_NULL,
                                null=True, blank=True, db_column='Storage_ID',
                                related_name='oocyte_specimens')
-    collection_date      = models.DateField(null=True, blank=True)
-    maturity             = models.CharField(max_length=50, null=True, blank=True)
-    retrieval_method     = models.CharField(max_length=100, null=True, blank=True)
-    count                = models.IntegerField(null=True, blank=True)
-    fertilization_status = models.CharField(max_length=50, null=True, blank=True)
+    collection_date      = models.DateField(null=True, blank=True, db_column='Collection_Date')
+    maturity             = models.CharField(max_length=50, null=True, blank=True, db_column='Maturity')
+    retrieval_method     = models.CharField(max_length=100, null=True, blank=True, db_column='Retrieval_Method')
+    count                = models.IntegerField(null=True, blank=True, db_column='Count')
+    fertilization_status = models.CharField(max_length=50, null=True, blank=True, db_column='Fertilization_Status')
 
     class Meta:
         db_table = 'OocyteSpecimen'
@@ -83,12 +84,12 @@ class EmbryoInformation(models.Model):
     storage         = models.ForeignKey(SampleInventory, on_delete=models.SET_NULL,
                           null=True, blank=True, db_column='Storage_ID',
                           related_name='embryos')
-    collection_date = models.DateField(null=True, blank=True)
-    volume          = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    collection_date = models.DateField(null=True, blank=True, db_column='Collection_Date')
+    volume          = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, db_column='Volume')
     motility        = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True,
-                          help_text='%')
+                          db_column='Motility', help_text='%')
     concentration   = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
-                          help_text='million/mL')
+                          db_column='Concentration', help_text='million/mL')
     # M:M to SpermSpecimen and OocyteSpecimen via explicit junction tables
     sperm_sources   = models.ManyToManyField(SpermSpecimen, through='SpermEmbryo',
                           related_name='embryos', blank=True)
