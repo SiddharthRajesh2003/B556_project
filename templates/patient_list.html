@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+{% block content %}
+<h1>Patients</h1>
+<div class="card">
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Name</th><th>Type</th><th>DOB</th><th>Treatment Plan</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for p in patients %}
+            <tr>
+                <td>{{ p.pk }}</td>
+                <td>{{ p.last_name }}, {{ p.first_name }}</td>
+                <td>
+                    <span class="badge {% if p.patient_type == 'Female' %}badge-female{% else %}badge-male{% endif %}">
+                        {{ p.patient_type }}
+                    </span>
+                </td>
+                <td>{{ p.dob|default:"—" }}</td>
+                <td>{{ p.treatment_plan|default:"—"|truncatechars:40 }}</td>
+                <td><a href="{% url 'patient-detail' p.pk %}" class="btn btn-primary">View</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" style="color:#999">No patients found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

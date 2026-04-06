@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Specimens{% endblock %}
+{% block content %}
+<h1>Specimens</h1>
+
+<div class="card">
+    <h2>Sperm Specimens</h2>
+    <table>
+        <thead>
+            <tr><th>Barcode</th><th>Patient</th><th>Collection Date</th><th>Concentration</th><th>Motility</th><th>DNA Fragmentation</th></tr>
+        </thead>
+        <tbody>
+        {% for s in sperm %}
+            <tr>
+                <td>{{ s.barcode }}</td>
+                <td><a href="{% url 'patient-detail' s.patient.pk %}">{{ s.patient }}</a></td>
+                <td>{{ s.collection_date|default:"—" }}</td>
+                <td>{{ s.sperm_concentration|default:"—" }} M/mL</td>
+                <td>{{ s.progressive_motility|default:"—" }}%</td>
+                <td>{{ s.dna_fragmentation_index|default:"—" }}%</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" style="color:#999">No sperm specimens.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Oocyte Specimens</h2>
+    <table>
+        <thead>
+            <tr><th>Barcode</th><th>Patient</th><th>Collection Date</th><th>Maturity</th><th>Count</th><th>Fertilization Status</th></tr>
+        </thead>
+        <tbody>
+        {% for o in oocytes %}
+            <tr>
+                <td>{{ o.barcode }}</td>
+                <td><a href="{% url 'patient-detail' o.patient.pk %}">{{ o.patient }}</a></td>
+                <td>{{ o.collection_date|default:"—" }}</td>
+                <td>{{ o.maturity|default:"—" }}</td>
+                <td>{{ o.count|default:"—" }}</td>
+                <td>{{ o.fertilization_status|default:"—" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" style="color:#999">No oocyte specimens.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Embryos</h2>
+    <table>
+        <thead>
+            <tr><th>Barcode</th><th>Patient</th><th>Collection Date</th><th>Motility</th><th>Concentration</th></tr>
+        </thead>
+        <tbody>
+        {% for e in embryos %}
+            <tr>
+                <td>{{ e.barcode }}</td>
+                <td><a href="{% url 'patient-detail' e.patient.pk %}">{{ e.patient }}</a></td>
+                <td>{{ e.collection_date|default:"—" }}</td>
+                <td>{{ e.motility|default:"—" }}%</td>
+                <td>{{ e.concentration|default:"—" }} M/mL</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" style="color:#999">No embryos.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

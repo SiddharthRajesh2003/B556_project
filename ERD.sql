@@ -2,6 +2,7 @@
 -- B556 Biological Database Management - Fertility Clinic DB
 -- Created from: ERD_final-final.pdf
 -- ============================================================
+DROP DATABASE IF EXISTS fertility_clinic;
 
 CREATE DATABASE IF NOT EXISTS fertility_clinic;
 USE fertility_clinic;
@@ -55,14 +56,7 @@ CREATE TABLE FemalePatients (
     MeanCycleLength             DECIMAL(5,2),
     EstimatedDayofOvulation     INT,
     ReproductiveCategory        INT          COMMENT '0=normal, other values per study coding',
-    CycleWithPeakorNot          TINYINT(1)   COMMENT '1=Peak detected (successful ovulation), 0=No peak',
-    FirstDayofHigh              INT,
     TotalDaysofFertility        INT,
-    TotalNumberofPeakDays       INT,
-    TotalNumberofHighDays       INT,
-    TotalHighPostPeak           INT,
-    LengthofLutealPhase         INT,
-    LengthofMenses              INT,
     MeanMensesLength            DECIMAL(5,2),
     TotalMensesScore            INT,
     UnusualBleeding             TINYINT(1),
@@ -142,14 +136,9 @@ CREATE TABLE SpermSpecimen (
     Ejaculate_Volume          DECIMAL(5,2)  COMMENT 'mL',
     Sperm_Vitality            DECIMAL(5,2)  COMMENT '%',
     Normal_Spermatozoa        DECIMAL(5,2)  COMMENT '%',
-    Head_Defects              DECIMAL(5,2)  COMMENT '%',
-    Midpiece_Neck_Defects     DECIMAL(5,2)  COMMENT '%',
-    Tail_Defects              DECIMAL(5,2)  COMMENT '%',
     Cytoplasmic_Droplet       DECIMAL(5,2)  COMMENT '%',
     Teratozoospermia_Index    DECIMAL(5,2),
     Progressive_Motility      DECIMAL(5,2)  COMMENT '%',
-    NonProgressive_Motility   DECIMAL(5,2)  COMMENT '%',
-    Immotile_Sperm            DECIMAL(5,2)  COMMENT '%',
     High_DNA_Stainability     DECIMAL(5,2)  COMMENT '%',
     DNA_Fragmentation_Index   DECIMAL(5,2)  COMMENT '%',
     CONSTRAINT fk_sperm_patient
@@ -201,9 +190,10 @@ CREATE TABLE EmbryoInformation (
 
 -- Sperm <-> Embryo  (Sperm_Embryo)
 CREATE TABLE Sperm_Embryo (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
     Sperm_Barcode   VARCHAR(50),
     Embryo_Barcode  VARCHAR(50),
-    PRIMARY KEY (Sperm_Barcode, Embryo_Barcode),
+    UNIQUE KEY uq_sperm_embryo (Sperm_Barcode, Embryo_Barcode),
     CONSTRAINT fk_se_sperm
         FOREIGN KEY (Sperm_Barcode)  REFERENCES SpermSpecimen(Barcode)
         ON DELETE CASCADE ON UPDATE CASCADE,
@@ -214,9 +204,10 @@ CREATE TABLE Sperm_Embryo (
 
 -- Oocyte <-> Embryo  (Oocyte_Embryo)
 CREATE TABLE Oocyte_Embryo (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
     Oocyte_Barcode  VARCHAR(50),
     Embryo_Barcode  VARCHAR(50),
-    PRIMARY KEY (Oocyte_Barcode, Embryo_Barcode),
+    UNIQUE KEY uq_oocyte_embryo (Oocyte_Barcode, Embryo_Barcode),
     CONSTRAINT fk_oe_oocyte
         FOREIGN KEY (Oocyte_Barcode) REFERENCES OocyteSpecimen(Barcode)
         ON DELETE CASCADE ON UPDATE CASCADE,

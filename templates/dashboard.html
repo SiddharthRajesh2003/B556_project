@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Fertility Clinic{% endblock %}
+{% block content %}
+<h1>Clinician Dashboard</h1>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-number">{{ total_patients }}</div>
+        <div class="stat-label">Total Patients</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ today_appointments }}</div>
+        <div class="stat-label">Appointments Today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ total_specimens }}</div>
+        <div class="stat-label">Specimens on File</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ total_providers }}</div>
+        <div class="stat-label">Providers</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h2>Upcoming Appointments</h2>
+        <a href="{% url 'appointment-list' %}" class="btn btn-secondary">View All</a>
+    </div>
+    <table>
+        <thead>
+            <tr><th>Date</th><th>Time</th><th>Patient</th><th>Provider</th><th>Room</th></tr>
+        </thead>
+        <tbody>
+        {% for appt in upcoming_appointments %}
+            <tr>
+                <td>{{ appt.scheduled_date }}</td>
+                <td>{{ appt.scheduled_time|default:"—" }}</td>
+                <td><a href="{% url 'patient-detail' appt.patient.pk %}">{{ appt.patient }}</a></td>
+                <td>{{ appt.hcp }}</td>
+                <td>{{ appt.room_number|default:"—" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" style="color:#999">No upcoming appointments.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h2>Recent Patients</h2>
+        <a href="{% url 'patient-list' %}" class="btn btn-secondary">View All</a>
+    </div>
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Name</th><th>Type</th><th>DOB</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for p in recent_patients %}
+            <tr>
+                <td>{{ p.pk }}</td>
+                <td>{{ p.last_name }}, {{ p.first_name }}</td>
+                <td>
+                    <span class="badge {% if p.patient_type == 'Female' %}badge-female{% else %}badge-male{% endif %}">
+                        {{ p.patient_type }}
+                    </span>
+                </td>
+                <td>{{ p.dob|default:"—" }}</td>
+                <td><a href="{% url 'patient-detail' p.pk %}" class="btn btn-primary">View</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" style="color:#999">No patients found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
