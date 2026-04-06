@@ -10,10 +10,10 @@ class Appointment(models.Model):
     hcp            = models.ForeignKey(HealthCareProvider, on_delete=models.RESTRICT,
                          db_column='HCP_ID', related_name='appointments',
                          verbose_name='Health Care Provider')
-    scheduled_date = models.DateField()
-    scheduled_time = models.TimeField(null=True, blank=True)
-    duration       = models.IntegerField(null=True, blank=True, help_text='Duration in minutes')
-    room_number    = models.CharField(max_length=20, null=True, blank=True)
+    scheduled_date = models.DateField(db_column='Scheduled_Date')
+    scheduled_time = models.TimeField(null=True, blank=True, db_column='Scheduled_Time')
+    duration       = models.IntegerField(null=True, blank=True, db_column='Duration', help_text='Duration in minutes')
+    room_number    = models.CharField(max_length=20, null=True, blank=True, db_column='Room_Number')
 
     class Meta:
         db_table = 'Appointments'
@@ -29,9 +29,9 @@ class Result(models.Model):
     result_id      = models.AutoField(primary_key=True, db_column='Result_ID')
     appointment    = models.ForeignKey(Appointment, on_delete=models.CASCADE,
                          db_column='Appointment_ID', related_name='results')
-    procedure_name = models.CharField(max_length=100, null=True, blank=True)
-    type           = models.CharField(max_length=50, null=True, blank=True)
-    result         = models.TextField(null=True, blank=True)
+    procedure_name = models.CharField(max_length=100, null=True, blank=True, db_column='Procedure_Name')
+    type           = models.CharField(max_length=50, null=True, blank=True, db_column='Type')
+    result         = models.TextField(null=True, blank=True, db_column='Result')
 
     class Meta:
         db_table = 'Results'

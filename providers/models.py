@@ -3,11 +3,11 @@ from django.db import models
 
 class HealthCareProvider(models.Model):
     hcp_id     = models.AutoField(primary_key=True, db_column='HCP_ID')
-    hcp_type   = models.CharField(max_length=50, null=True, blank=True, verbose_name='Provider Type')
-    first_name = models.CharField(max_length=50)
-    last_name  = models.CharField(max_length=50)
-    specialty  = models.CharField(max_length=100, null=True, blank=True)
-    gender     = models.CharField(max_length=20, null=True, blank=True)
+    hcp_type   = models.CharField(max_length=50, null=True, blank=True, db_column='HCP_Type', verbose_name='Provider Type')
+    first_name = models.CharField(max_length=50, db_column='First_Name')
+    last_name  = models.CharField(max_length=50, db_column='Last_Name')
+    specialty  = models.CharField(max_length=100, null=True, blank=True, db_column='Specialty')
+    gender     = models.CharField(max_length=20, null=True, blank=True, db_column='Gender')
 
     class Meta:
         db_table = 'HealthCareProvider'

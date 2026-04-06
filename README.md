@@ -1,17 +1,19 @@
 # B556_project
 
-1. Download Pixi into your Linux machine using
+1. First create the database by running the queries in [ERD.sql](ERD.sql)
+
+2. Download Pixi into your Linux machine using
 
 ```bash
 curl -fsSL https://pixi.sh/install.sh | sh
 ```
 
-2. If you use windows, run this command in Windows Powershell
+3. If you use windows, run this command in Windows Powershell
 ```bash
 powershell -ExecutionPolicy ByPass -c "irm -useb https://pixi.sh/install.ps1 | iex"
 ```
 
-3. In your workspace, run this command to create your environment
+4. In your workspace, run this command to create your environment
 
 ```bash
 cd /your/workspace/B556_project
@@ -19,7 +21,7 @@ pixi init
 pixi add django mysqlclient pymysql python-decouple
 ```
 
-4. Create your .env file with the below variables storing your connection variables
+5. Create your .env file with the below variables storing your connection variables
 
 ```bash
 SECRET_KEY=your-secret-key-here
@@ -31,18 +33,37 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 ```
 
-5. Migrate your database to Django by running this command
+6. Run this command to generate synthea data after installing [Docker-Desktop](https://www.docker.com/products/docker-desktop/)
+
+```bash
+docker run --rm -v "${PWD}/data:/output" --name synthea-docker intersystemsdc/irisdemo-base-synthea:version-1.3.4 -p 5
+```
+
+7. Download these datasets from Kaggle
+
+[Dataset 1](https://www.kaggle.com/datasets/gabbygab/fertility-data-set)
+[Dataset 2](https://www.kaggle.com/datasets/echekwuelijah/fertility-and-menstrual-health-data)
+[Dataset 3](https://www.kaggle.com/datasets/stevenhicks/visem-video-dataset)
+
+
+8. Append data to the database using this command
+
+```bash
+pixi run python load_synthea.py
+```
+
+9. Migrate your database to Django by running this command
 
 ```bash
 pixi run python manage.py migrate
 ```
 
-6. To create admin access, run this
+10. To create admin access, run this
 ```bash
 pixi run python manage.py createsuperuser
 ```
 
-7. Start the server by running this command
+11. Start the server by running this command
 ```bash
 pixi run python manage.py runserver
 ```
