@@ -1,4 +1,8 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+def is_staff(user):
+    return user.is_staff
 from django.utils import timezone
 from patients.models import PatientInformation
 from appointments.models import Appointment
@@ -6,6 +10,8 @@ from specimens.models import SpermSpecimen, OocyteSpecimen, EmbryoInformation
 from providers.models import HealthCareProvider
 
 
+@login_required(login_url='login')
+@user_passes_test(is_staff, login_url='login')
 def dashboard(request):
     today = timezone.localdate()
     context = {

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}My Portal — Fertility Clinic{% endblock %}
+{% block content %}
+<h1>Welcome, {{ patient.first_name }}</h1>
+
+<div class="card">
+    <h2>My Information</h2>
+    <dl>
+        <dt>Name</dt>         <dd>{{ patient.first_name }} {{ patient.last_name }}</dd>
+        <dt>Date of Birth</dt><dd>{{ patient.dob|default:"—" }}</dd>
+        <dt>Gender</dt>       <dd>{{ patient.patient_gender|default:"—" }}</dd>
+        <dt>Treatment Plan</dt><dd>{{ patient.treatment_plan|default:"—" }}</dd>
+    </dl>
+</div>
+
+<div class="card">
+    <h2>My Appointments</h2>
+    <table>
+        <thead>
+            <tr><th>Date</th><th>Time</th><th>Provider</th><th>Room</th><th>Results</th></tr>
+        </thead>
+        <tbody>
+        {% for appt in appointments %}
+            <tr>
+                <td>{{ appt.scheduled_date }}</td>
+                <td>{{ appt.scheduled_time|default:"—" }}</td>
+                <td>{{ appt.hcp }}</td>
+                <td>{{ appt.room_number|default:"—" }}</td>
+                <td>
+                    {% for result in appt.results.all %}
+                        <div>{{ result.procedure_name|default:"—" }}: {{ result.result|default:"Pending"|truncatechars:50 }}</div>
+                    {% empty %}
+                        —
+                    {% endfor %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" style="color:#999">No appointments on record.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if patient.patient_type == 'Female' and patient.female_data %}
+<div class="card">
+    <h2>My Reproductive Data</h2>
+    <dl>
+        <dt>Cycle Number</dt>            <dd>{{ patient.female_data.cycle_number|default:"—" }}</dd>
+        <dt>Length of Cycle</dt>         <dd>{{ patient.female_data.length_of_cycle|default:"—" }} days</dd>
+        <dt>Est. Day of Ovulation</dt>   <dd>{{ patient.female_data.estimated_day_of_ovulation|default:"—" }}</dd>
+        <dt>Total Days of Fertility</dt> <dd>{{ patient.female_data.total_days_of_fertility|default:"—" }}</dd>
+        <dt>Unusual Bleeding</dt>        <dd>{{ patient.female_data.unusual_bleeding|yesno:"Yes,No,—" }}</dd>
+    </dl>
+</div>
+{% endif %}
+
+{% if patient.patient_type == 'Male' and patient.male_data %}
+<div class="card">
+    <h2>My Clinical Data</h2>
+    <dl>
+        <dt>Diagnosis</dt>     <dd>{{ patient.male_data.diagnosis|default:"—" }}</dd>
+        <dt>Fever History</dt> <dd>{{ patient.male_data.fever_history|default:"—" }}</dd>
+    </dl>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>My Specimens</h2>
+    <table>
+        <thead><tr><th>Type</th><th>Barcode</th><th>Collection Date</th><th>Status / Key Metric</th></tr></thead>
+        <tbody>
+        {% for s in patient.sperm_specimens.all %}
+            <tr>
+                <td>Sperm</td>
+                <td>{{ s.barcode }}</td>
+                <td>{{ s.collection_date|default:"—" }}</td>
+                <td>Motility: {{ s.progressive_motility|default:"—" }}%</td>
+            </tr>
+        {% endfor %}
+        {% for o in patient.oocyte_specimens.all %}
+            <tr>
+                <td>Oocyte</td>
+                <td>{{ o.barcode }}</td>
+                <td>{{ o.collection_date|default:"—" }}</td>
+                <td>{{ o.fertilization_status|default:"—" }}</td>
+            </tr>
+        {% endfor %}
+        {% for e in patient.embryos.all %}
+            <tr>
+                <td>Embryo</td>
+                <td>{{ e.barcode }}</td>
+                <td>{{ e.collection_date|default:"—" }}</td>
+                <td>Motility: {{ e.motility|default:"—" }}%</td>
+            </tr>
+        {% endfor %}
+        {% if not patient.sperm_specimens.exists and not patient.oocyte_specimens.exists and not patient.embryos.exists %}
+            <tr><td colspan="4" style="color:#999">No specimens on record.</td></tr>
+        {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{% url 'logout' %}" class="btn btn-secondary">Sign Out</a>
+{% endblock %}

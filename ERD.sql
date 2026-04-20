@@ -24,6 +24,7 @@ CREATE TABLE HealthCareProvider (
 -- Patient Information
 CREATE TABLE PatientInformation (
     Patient_ID      INT AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT NULL,
     First_Name      VARCHAR(50)  NOT NULL,
     Last_Name       VARCHAR(50)  NOT NULL,
     DOB             DATE,
