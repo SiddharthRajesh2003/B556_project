@@ -22,7 +22,7 @@ import random
 import django
 import uuid
 from pathlib import Path
-from datetime import date
+from datetime import date, time
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fertility_clinic.settings')
 django.setup()
@@ -30,7 +30,7 @@ django.setup()
 from patients.models import PatientInformation, PatientMedicalHistory, FemalePatients, MalePatients
 from providers.models import HealthCareProvider
 from appointments.models import Appointment, Result
-from specimens.models import SpermSpecimen, SampleInventory
+from specimens.models import SpermSpecimen, OocyteSpecimen, SampleInventory
 
 FHIR_DIR  = Path('data/fhir')
 DATA_DIR  = Path('data')
@@ -92,6 +92,11 @@ def load_practitioners(resources: dict):
 
 def load_patients(resources: dict):
     for p in resources.get('Patient', []):
+        # Skip deceased patients — fertility clinic patients must be alive
+        if p.get('deceasedDateTime') or p.get('deceasedBoolean') is True:
+            print(f"  Skipping deceased patient: {p.get('id', '')}")
+            continue
+
         fhir_id  = p.get('id', '')
         name     = p.get('name', [{}])[0]
         family   = name.get('family', 'Unknown')
@@ -99,6 +104,14 @@ def load_patients(resources: dict):
         gender   = p.get('gender', 'unknown')
         dob_str  = p.get('birthDate')
         dob      = date.fromisoformat(dob_str) if dob_str else None
+
+        # Skip patients outside the fertility clinic age range (20–50)
+        if dob:
+            today = date.today()
+            age   = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+            if not (20 <= age <= 50):
+                print(f"  Skipping out-of-range age ({age}): {given} {family}")
+                continue
 
         sex_at_birth = 'Male'
         for ext in p.get('extension', []):
@@ -146,12 +159,13 @@ def load_encounters(resources: dict):
         if not start:
             continue
 
-        locs = enc.get('location', [])
-        room = locs[0].get('location', {}).get('display') if locs else None
+        room = str(random.randint(1, 10))
+        hour = random.randint(9, 14)   # 9 AM – 2 PM so last slot ends by 3 PM
+        appt_time = time(hour, random.choice([0, 30]))
 
-        appt, created = Appointment.objects.get_or_create(
+        appt, created = Appointment.objects.update_or_create(
             patient=pt, hcp=hcp, scheduled_date=start,
-            defaults={'room_number': room}
+            defaults={'room_number': room, 'scheduled_time': appt_time}
         )
         if created:
             reason     = enc.get('reasonCode', [{}])[0]
@@ -178,6 +192,81 @@ def process_bundle(path: Path):
 
 
 # ── Kaggle CSV loaders ────────────────────────────────────────────────────────
+
+FEMALE_ONLY_PROCEDURES   = {'ovarian cystectomy', 'histerectomy', 'bilateral masectomy'}
+FEMALE_ONLY_CONDITIONS   = {'endometriosis', 'pcos'}
+MALE_ONLY_PROCEDURES     = {'vasectomy', 'testicular removal', 'testicular torsion'}
+
+
+def _row_gender(row):
+    """Return 'F', 'M', or 'N' (neutral) based on procedure/condition in this row."""
+    surgery   = row.get('Surgical History', '').strip().lower()
+    condition = row.get('Medical Conditions', '').strip().lower()
+    if surgery in FEMALE_ONLY_PROCEDURES or condition in FEMALE_ONLY_CONDITIONS:
+        return 'F'
+    if surgery in MALE_ONLY_PROCEDURES:
+        return 'M'
+    return 'N'
+
+
+def _make_pool(rows, gender_code, count):
+    """Return a shuffled pool of `count` rows compatible with gender_code (F or M)."""
+    compatible = [r for r in rows if _row_gender(r) in (gender_code, 'N')]
+    if not compatible:
+        compatible = rows
+    random.shuffle(compatible)
+    return (compatible * ((count // len(compatible)) + 1))[:count]
+
+
+def load_medical_history_data():
+    """
+    Randomly assign rows from 'Medical History.csv' to all patients whose
+    PatientMedicalHistory record still has no data filled in.
+    Female-only procedures/conditions go only to female patients; male-only to males.
+    """
+    csv_path = DATA_DIR / 'Medical History.csv'
+    if not csv_path.exists():
+        print("  'Medical History.csv' not found, skipping.")
+        return
+
+    with open(csv_path, encoding='utf-8-sig') as f:
+        rows = list(csv.DictReader(f))
+
+    patients = list(
+        PatientInformation.objects.filter(
+            medical_history__height__isnull=True,
+            medical_history__weight__isnull=True,
+            medical_history__blood_type__isnull=True,
+        )
+    )
+    if not patients:
+        print("  No patients with empty medical history found.")
+        return
+
+    female_pts = [p for p in patients if p.patient_type == 'Female']
+    male_pts   = [p for p in patients if p.patient_type == 'Male']
+
+    female_pool = _make_pool(rows, 'F', len(female_pts))
+    male_pool   = _make_pool(rows, 'M', len(male_pts))
+
+    print(f"\nAssigning medical history data to {len(patients)} patient(s)...")
+    for pt, row in list(zip(female_pts, female_pool)) + list(zip(male_pts, male_pool)):
+        diabetes_raw = str(row.get('Diabetes Status', '')).strip().upper()
+        alcohol_raw  = str(row.get('Alcohol Use', '')).strip().upper()
+        PatientMedicalHistory.objects.update_or_create(
+            patient=pt,
+            defaults={
+                'diabetes_status':    'Yes' if diabetes_raw == 'TRUE' else ('No' if diabetes_raw == 'FALSE' else None),
+                'height':             _dec(row.get('Height')),
+                'weight':             _dec(row.get('Weight ')),
+                'blood_type':         row.get('Blood Type', '').strip() or None,
+                'medical_conditions': row.get('Medical Conditions', '').strip() or None,
+                'surgical_history':   row.get('Surgical History', '').strip() or None,
+                'alcohol_use':        'Yes' if alcohol_raw == 'TRUE' else ('No' if alcohol_raw == 'FALSE' else None),
+            }
+        )
+        print(f"  Medical history -> {pt}")
+
 
 def load_female_cycle_data():
     """
@@ -275,6 +364,76 @@ def load_male_fertility_data():
         print(f"  Male data -> {pt}")
 
 
+def load_oocyte_data():
+    """
+    Randomly assign rows from merged-train-data-cleaned.csv to female patients
+    as OocyteSpecimen records.  Maps Stage_at_Retrieval, Fert_Method, Sum_MII,
+    and Fert_Status to the OocyteSpecimen model fields.
+    """
+    csv_path = DATA_DIR / 'merged-train-data-cleaned.csv'
+    if not csv_path.exists():
+        print("  merged-train-data-cleaned.csv not found, skipping.")
+        return
+
+    with open(csv_path, encoding='utf-8-sig') as f:
+        rows = list(csv.DictReader(f))
+
+    female_patients = list(
+        PatientInformation.objects.filter(patient_type='Female')
+        .exclude(oocyte_specimens__isnull=False)
+    )
+    if not female_patients:
+        print("  No unassigned female patients found for oocyte data.")
+        return
+
+    storage, _ = SampleInventory.objects.get_or_create(
+        storage_id=1,
+        defaults={'storage_temperature': -196.0}
+    )
+
+    # Only rows with a valid oocyte count
+    valid_rows = [r for r in rows if r.get('Sum_MII', '').strip() not in ('', '*')]
+    if not valid_rows:
+        valid_rows = rows
+
+    random.shuffle(valid_rows)
+    row_pool = (valid_rows * ((len(female_patients) // len(valid_rows)) + 1))[:len(female_patients)]
+
+    # Numeric codes used in the dataset
+    fert_method_map = {'0': 'IVF', '1': 'ICSI', '2': 'GIFT', '3': 'ZIFT'}
+    stage_map = {
+        '1': 'MII', '2': 'MI', '3': 'GV',
+        '4': '2-cell', '5': '4-cell', '6': '8-cell',
+        '7': 'Morula', '8': 'Early Blastocyst', '9': 'Blastocyst',
+        '10': 'Expanded Blastocyst',
+    }
+    fert_status_map = {
+        '0': 'Unfertilized', '0.0': 'Unfertilized',
+        '1': '1PN', '1.0': '1PN',
+        '2': '2PN (Fertilized)', '2.0': '2PN (Fertilized)',
+        '3': '3PN (Abnormal)', '3.0': '3PN (Abnormal)',
+    }
+
+    print(f"\nAssigning oocyte specimen data to {len(female_patients)} patient(s)...")
+    for pt, row in zip(female_patients, row_pool):
+        stage_raw  = str(row.get('Stage_at_Retrieval', '')).strip()
+        method_raw = str(row.get('Fert_Method', '')).strip()
+        status_raw = str(row.get('Fert_Status', '')).strip()
+
+        barcode = f"OC-{uuid.uuid4().hex[:10].upper()}"
+        OocyteSpecimen.objects.create(
+            barcode=barcode,
+            patient=pt,
+            storage=storage,
+            collection_date=date.today(),
+            maturity=stage_map.get(stage_raw, f"Stage {stage_raw}" if stage_raw else None),
+            retrieval_method=fert_method_map.get(method_raw, method_raw or None),
+            count=_int(row.get('Sum_MII')),
+            fertilization_status=fert_status_map.get(status_raw, status_raw or None),
+        )
+        print(f"  Oocyte specimen [{barcode}] -> {pt}")
+
+
 def load_semen_data():
     """
     Randomly assign rows from semen_analysis_data.csv to male Synthea patients
@@ -342,7 +501,9 @@ def main():
         process_bundle(path)
 
     print("\n=== Assigning Kaggle fertility data ===")
+    load_medical_history_data()
     load_female_cycle_data()
+    load_oocyte_data()
     load_male_fertility_data()
     load_semen_data()
 
@@ -351,8 +512,10 @@ def main():
     print(f"  Providers:    {HealthCareProvider.objects.count()}")
     print(f"  Appointments: {Appointment.objects.count()}")
     print(f"  Results:      {Result.objects.count()}")
+    print(f"  Med. history: {PatientMedicalHistory.objects.exclude(height__isnull=True).count()} filled")
     print(f"  Female data:  {FemalePatients.objects.count()}")
     print(f"  Male data:    {MalePatients.objects.count()}")
+    print(f"  Oocyte spec.: {OocyteSpecimen.objects.count()}")
     print(f"  Sperm spec.:  {SpermSpecimen.objects.count()}")
 
 

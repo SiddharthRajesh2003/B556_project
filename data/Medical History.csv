@@ -1,0 +1,39 @@
+,Diabetes Status,Height,Weight ,Blood Type,Medical Conditions,Surgical History,Alcohol Use
+1,TRUE,184,226,A-,Arthritis,Ovarian Cystectomy,TRUE
+2,FALSE,164,149,A-,Endometriosis,Bilateral Masectomy,FALSE
+3,TRUE,192,271,B+,Depression,Bilateral Masectomy,FALSE
+4,FALSE,182,286,AB-,Lupus,Hip replacement,FALSE
+5,TRUE,200,173,AB+,Hypotension,Biopsy,TRUE
+6,FALSE,151,202,O+,Blind,Vasectomy,TRUE
+7,FALSE,175,214,O+,Endometriosis,Hip replacement,TRUE
+8,FALSE,153,245,B+,Colorblind,Testicular removal,FALSE
+9,TRUE,166,192,B+,Lupus,Hip replacement,FALSE
+10,FALSE,156,183,B+,Hypotension,Testicular torsion,TRUE
+11,FALSE,174,213,B+,Depression,Biopsy,FALSE
+12,FALSE,196,238,A+,Endometriosis,Testicular torsion,TRUE
+13,TRUE,174,176,O-,PCOS,Hip replacement,TRUE
+14,TRUE,154,283,O+,Dementia,Testicular torsion,FALSE
+15,FALSE,191,221,b-,Acne,Biopsy,FALSE
+16,TRUE,142,268,b-,Colorblind,Testicular torsion,FALSE
+17,TRUE,155,286,AB-,Polydactile,Testicular removal,FALSE
+18,FALSE,185,128,b-,Endometriosis,Testicular removal,TRUE
+19,TRUE,159,181,A-,Depression,Hip replacement,FALSE
+20,TRUE,157,273,b-,Schizophrenia,Biopsy,TRUE
+21,FALSE,154,227,O+,Acne,Ovarian Cystectomy,FALSE
+22,FALSE,164,246,b-,Arthritis,Histerectomy,FALSE
+23,FALSE,180,158,b-,Endometriosis,Testicular torsion,FALSE
+24,FALSE,141,225,A+,Lupus,Hip replacement,TRUE
+25,TRUE,198,295,B+,Schizophrenia,Testicular torsion,TRUE
+26,FALSE,151,156,O-,Acne,Biopsy,FALSE
+27,FALSE,154,157,AB-,Colorblind,Bilateral Masectomy,TRUE
+28,TRUE,142,200,AB-,Schizophrenia,Hip replacement,TRUE
+29,FALSE,164,138,B+,Dementia,Bilateral Masectomy,TRUE
+30,FALSE,195,256,AB-,Arthritis,Ovarian Cystectomy,FALSE
+31,FALSE,196,191,B+,Colorblind,Bilateral Masectomy,TRUE
+32,TRUE,175,257,O+,Dementia,Ovarian Cystectomy,FALSE
+33,FALSE,199,240,AB+,Acne,Histerectomy,FALSE
+34,FALSE,146,280,A+,Lupus,Histerectomy,FALSE
+35,FALSE,172,162,B+,PCOS,Bilateral Masectomy,FALSE
+36,TRUE,186,156,AB-,Depression,Histerectomy,FALSE
+37,TRUE,193,125,B+,Deaf,Hip replacement,FALSE
+38,TRUE,140,257,O-,Colorblind,Histerectomy,TRUE

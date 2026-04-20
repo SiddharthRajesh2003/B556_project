@@ -5,3 +5,4 @@
 */__pycache__/
 */fhir/
 *.jpeg
+*/*/__pycache__/

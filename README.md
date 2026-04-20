@@ -36,7 +36,7 @@ DB_PORT=3306
 6. Run this command to generate synthea data after installing [Docker-Desktop](https://www.docker.com/products/docker-desktop/)
 
 ```bash
-docker run --rm -v "${PWD}/data:/output" --name synthea-docker intersystemsdc/irisdemo-base-synthea:version-1.3.4 -p 5
+docker run --rm -v "${PWD}/data:/output" --name synthea-docker intersystemsdc/irisdemo-base-synthea:version-1.3.4 -p 800 --seed 42 --generate.only_alive_patients=true -a 20-50
 ```
 
 7. Download these datasets from Kaggle
@@ -45,11 +45,9 @@ docker run --rm -v "${PWD}/data:/output" --name synthea-docker intersystemsdc/ir
 [Dataset 2](https://www.kaggle.com/datasets/echekwuelijah/fertility-and-menstrual-health-data)
 [Dataset 3](https://www.kaggle.com/datasets/stevenhicks/visem-video-dataset)
 
-
-8. Append data to the database using this command
-
+8. Generate migrations for the patients
 ```bash
-pixi run python load_synthea.py
+pixi run python manage.py makemigrations patients
 ```
 
 9. Migrate your database to Django by running this command
@@ -58,12 +56,18 @@ pixi run python load_synthea.py
 pixi run python manage.py migrate
 ```
 
-10. To create admin access, run this
+10.  Append data to the database using this command
+
+```bash
+pixi run python load_synthea.py
+```
+
+11. To create admin access, run this
 ```bash
 pixi run python manage.py createsuperuser
 ```
 
-11. Start the server by running this command
+12. Start the server by running this command
 ```bash
 pixi run python manage.py runserver
 ```

@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class PatientInformation(models.Model):
@@ -9,6 +10,8 @@ class PatientInformation(models.Model):
     SEX_CHOICES = [('Male', 'Male'), ('Female', 'Female'), ('Intersex', 'Intersex')]
 
     patient_id     = models.AutoField(primary_key=True, db_column='Patient_ID')
+    user           = models.OneToOneField(User, on_delete=models.SET_NULL,
+                         null=True, blank=True, related_name='patient_profile')
     first_name     = models.CharField(max_length=50, db_column='First_Name')
     last_name      = models.CharField(max_length=50, db_column='Last_Name')
     dob            = models.DateField(null=True, blank=True, db_column='DOB', verbose_name='Date of Birth')
