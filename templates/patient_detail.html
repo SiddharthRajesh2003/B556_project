@@ -9,6 +9,7 @@
         <dt>Patient ID</dt>     <dd>{{ patient.pk }}</dd>
         <dt>Date of Birth</dt>  <dd>{{ patient.dob|default:"—" }}</dd>
         <dt>Patient Type</dt>   <dd>{{ patient.patient_type }}</dd>
+        <dt>Role</dt>           <dd>{{ patient.patient_role }}</dd>
         <dt>Sex at Birth</dt>   <dd>{{ patient.sex_at_birth|default:"—" }}</dd>
         <dt>Gender</dt>         <dd>{{ patient.patient_gender|default:"—" }}</dd>
         <dt>Treatment Plan</dt> <dd>{{ patient.treatment_plan|default:"—" }}</dd>
