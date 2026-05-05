@@ -7,6 +7,10 @@ class PatientInformation(models.Model):
     FEMALE = 'Female'
     PATIENT_TYPE_CHOICES = [(MALE, 'Male'), (FEMALE, 'Female')]
 
+    CLIENT = 'Client'
+    DONOR  = 'Donor'
+    PATIENT_ROLE_CHOICES = [(CLIENT, 'Client'), (DONOR, 'Donor')]
+
     SEX_CHOICES = [('Male', 'Male'), ('Female', 'Female'), ('Intersex', 'Intersex')]
 
     patient_id     = models.AutoField(primary_key=True, db_column='Patient_ID')
@@ -16,6 +20,7 @@ class PatientInformation(models.Model):
     last_name      = models.CharField(max_length=50, db_column='Last_Name')
     dob            = models.DateField(null=True, blank=True, db_column='DOB', verbose_name='Date of Birth')
     patient_type   = models.CharField(max_length=6, choices=PATIENT_TYPE_CHOICES, db_column='Patient_Type')
+    patient_role   = models.CharField(max_length=6, choices=PATIENT_ROLE_CHOICES, default=CLIENT, db_column='Patient_Role')
     sex_at_birth   = models.CharField(max_length=10, choices=SEX_CHOICES, null=True, blank=True, db_column='Sex_at_Birth')
     patient_gender = models.CharField(max_length=30, null=True, blank=True, db_column='Patient_Gender')
     treatment_plan = models.TextField(null=True, blank=True, db_column='Treatment_Plan')

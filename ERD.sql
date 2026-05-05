@@ -29,6 +29,7 @@ CREATE TABLE PatientInformation (
     Last_Name       VARCHAR(50)  NOT NULL,
     DOB             DATE,
     Patient_Type    ENUM('Male', 'Female') NOT NULL,
+    Patient_Role    ENUM('Client', 'Donor') NOT NULL DEFAULT 'Client',
     Sex_at_Birth    ENUM('Male', 'Female', 'Intersex'),
     Patient_Gender  VARCHAR(30),
     Treatment_Plan  TEXT

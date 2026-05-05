@@ -53,7 +53,7 @@ pixi run python manage.py makemigrations patients
 9. Migrate your database to Django by running this command
 
 ```bash
-pixi run python manage.py migrate
+pixi run python manage.py migrate --fake-initial
 ```
 
 10.  Append data to the database using this command

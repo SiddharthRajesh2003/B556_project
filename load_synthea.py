@@ -30,7 +30,7 @@ django.setup()
 from patients.models import PatientInformation, PatientMedicalHistory, FemalePatients, MalePatients
 from providers.models import HealthCareProvider
 from appointments.models import Appointment, Result
-from specimens.models import SpermSpecimen, OocyteSpecimen, SampleInventory
+from specimens.models import SpermSpecimen, OocyteSpecimen, EmbryoInformation, SampleInventory
 
 FHIR_DIR  = Path('data/fhir')
 DATA_DIR  = Path('data')
@@ -119,11 +119,13 @@ def load_patients(resources: dict):
                 sex_at_birth = 'Female' if ext.get('valueCode', 'M') == 'F' else 'Male'
 
         pt_type = 'Female' if gender.lower() == 'female' else 'Male'
+        pt_role = random.choices(['Client', 'Donor'], weights=[75, 25])[0]
 
         pt, created = PatientInformation.objects.get_or_create(
             first_name=given, last_name=family, dob=dob,
             defaults={
                 'patient_type':   pt_type,
+                'patient_role':   pt_role,
                 'sex_at_birth':   sex_at_birth,
                 'patient_gender': gender.capitalize(),
             }
@@ -165,7 +167,7 @@ def load_encounters(resources: dict):
 
         appt, created = Appointment.objects.update_or_create(
             patient=pt, hcp=hcp, scheduled_date=start,
-            defaults={'room_number': room, 'scheduled_time': appt_time}
+            defaults={'room_number': room, 'scheduled_time': appt_time, 'duration': 30}
         )
         if created:
             reason     = enc.get('reasonCode', [{}])[0]
@@ -487,6 +489,58 @@ def load_semen_data():
         print(f"  Semen specimen [{barcode}] -> {pt}")
 
 
+def load_embryo_data():
+    """
+    Create one EmbryoInformation record per female patient using:
+      - Motility  <- %_survival from merged-train-data-cleaned.csv
+      - Volume    <- random realistic embryo transfer volume (0.01–0.05 mL)
+      - Concentration <- random (0.01–0.10 million/mL; embryos are individual,
+                         so count is very low relative to sperm)
+    """
+    csv_path = DATA_DIR / 'merged-train-data-cleaned.csv'
+    if not csv_path.exists():
+        print("  merged-train-data-cleaned.csv not found, skipping embryo load.")
+        return
+
+    with open(csv_path, encoding='utf-8-sig') as f:
+        rows = list(csv.DictReader(f))
+
+    # Only rows that have a usable %_survival value
+    valid_rows = [r for r in rows if r.get('%_survival', '').strip() not in ('', '*')]
+    if not valid_rows:
+        valid_rows = rows
+
+    female_patients = list(
+        PatientInformation.objects.filter(patient_type='Female', patient_role='Client')
+        .exclude(embryos__isnull=False)
+    )
+    if not female_patients:
+        print("  No unassigned female patients found for embryo data.")
+        return
+
+    storage, _ = SampleInventory.objects.get_or_create(
+        storage_id=1,
+        defaults={'storage_temperature': -196.0}
+    )
+
+    random.shuffle(valid_rows)
+    row_pool = (valid_rows * ((len(female_patients) // len(valid_rows)) + 1))[:len(female_patients)]
+
+    print(f"\nAssigning embryo data to {len(female_patients)} patient(s)...")
+    for pt, row in zip(female_patients, row_pool):
+        barcode = f"EM-{uuid.uuid4().hex[:10].upper()}"
+        EmbryoInformation.objects.create(
+            barcode=barcode,
+            patient=pt,
+            storage=storage,
+            collection_date=date.today(),
+            motility=      _dec(row.get('%_survival')),
+            volume=        round(random.uniform(0.01, 0.05), 2),
+            concentration= round(random.uniform(0.01, 0.10), 2),
+        )
+        print(f"  Embryo [{barcode}] -> {pt}")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -506,6 +560,7 @@ def main():
     load_oocyte_data()
     load_male_fertility_data()
     load_semen_data()
+    load_embryo_data()
 
     print("\n=== Summary ===")
     print(f"  Patients:     {PatientInformation.objects.count()}")
@@ -516,6 +571,7 @@ def main():
     print(f"  Female data:  {FemalePatients.objects.count()}")
     print(f"  Male data:    {MalePatients.objects.count()}")
     print(f"  Oocyte spec.: {OocyteSpecimen.objects.count()}")
+    print(f"  Embryos:      {EmbryoInformation.objects.count()}")
     print(f"  Sperm spec.:  {SpermSpecimen.objects.count()}")
 
 
